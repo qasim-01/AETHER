@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AETHER
 
-## Getting Started
+**AETHER** is a high-performacne, browser-based kinetic particle sandbox. It utilizes a custom 2D rendering engine to simulate thousands of particles reacting in real-time to user-placed gravitational and repulsive nodes.
 
-First, run the development server:
+Instead of basic linear attraction towards the nodes, the physics engine calculates tangential acceleration vectors to create complex orbital mechanics, fluid drag forces and accretion disks (in 3D an accretion disk is like a funnel thats flat at the center - commonly seen in depictions of black holes - like that one famous scene from interstellar)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+____
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+![AETHER Engine Demo](docs/demo.gif) ## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **High-Performace Canvas Engine:** Renders and computes physics for 2,000+ independent particles at 60 FPS.
+- **Decoupled Architecture:** The physics loop and the UI are completely separated, this allows for state updates using Zustand and therefore this prevents React re-renders from bottlenecking the canvas `requestAnimationFrame` loop.
+- **Orbital Vector Math:** Attractor nodes generate both linear pull and tangential swirl forces, naturally forming the accretion disks mentioned earlier instead of simply attracting particles linearly and then "slingshotting" them off in a direction.
+- **Physics & Math Model Used:** Every frame, the engine calculates the distance ($d$) between a particle and a node. If within the threshold, it applies the inverse-square law to determine base strength, calculates the normalized directional vectors ($u_x, u_y$), and derives the perpendicular tangents ($\tau_x, \tau_y$) to apply orbital velocity.
+- **Rendering:** It uses `globalCompositeOperation` to create plasma blending and long-exposure light trails.
+- **Dynamic Themes:** This provides different coloring options to the users or "Themes" and it recalculations particle and UI hex codes instantly. 
+    - Themes: Neon, Fire, Ocean, Mono
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+_____
 
-## Learn More
+## Tech Stack Used:
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework:** [Next.js](https://next.js.org/) (App Router)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **State Management:** [Zustand](https://github.com/pmdrs/zustand)
+- **Animation:** [Framer Motion](https://www.framer.com/motion/)
+- **Physics/Rendering:** HTML5 Canvas API (Vanilla JS)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+______
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Using/Running AETHER
 
-## Deploy on Vercel
+- AETHER is deployed with vercel at: https://aether-gilt-kappa.vercel.app/
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+If you would like to run this project locally on your device, you'll need Node.js installed.
+    
+1. **Clone the Repository**
+    ```bash
+    git clone [https://github.com/yourusername/aether.git](https://github.com/yourusername/aether.git)
+   cd aether
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. **Install dependencies**
+    ```bash
+    npm install
+
+3. **Run it locally**
+    ```bash
+    npm run dev
+
+4. **Open the interface**
+    Navigate to http://localhost:3000 in your browser
+
+____
