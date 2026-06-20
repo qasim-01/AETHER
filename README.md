@@ -6,7 +6,7 @@ Instead of basic linear attraction towards the nodes, the physics engine calcula
 
 ____
 
-![AETHER Engine Demo](docs/demo.gif) ## Features
+## Features
 
 - **High-Performace Canvas Engine:** Renders and computes physics for 2,000+ independent particles at 60 FPS.
 - **Decoupled Architecture:** The physics loop and the UI are completely separated, this allows for state updates using Zustand and therefore this prevents React re-renders from bottlenecking the canvas `requestAnimationFrame` loop.
