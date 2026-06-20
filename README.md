@@ -9,10 +9,15 @@ ____
 ## Features
 
 - **High-Performace Canvas Engine:** Renders and computes physics for 2,000+ independent particles at 60 FPS.
+
 - **Decoupled Architecture:** The physics loop and the UI are completely separated, this allows for state updates using Zustand and therefore this prevents React re-renders from bottlenecking the canvas `requestAnimationFrame` loop.
+
 - **Orbital Vector Math:** Attractor nodes generate both linear pull and tangential swirl forces, naturally forming the accretion disks mentioned earlier instead of simply attracting particles linearly and then "slingshotting" them off in a direction.
+
 - **Physics & Math Model Used:** Every frame, the engine calculates the distance ($d$) between a particle and a node. If within the threshold, it applies the inverse-square law to determine base strength, calculates the normalized directional vectors ($u_x, u_y$), and derives the perpendicular tangents ($\tau_x, \tau_y$) to apply orbital velocity.
+
 - **Rendering:** It uses `globalCompositeOperation` to create plasma blending and long-exposure light trails.
+
 - **Dynamic Themes:** This provides different coloring options to the users or "Themes" and it recalculations particle and UI hex codes instantly. 
     - Themes: Neon, Fire, Ocean, Mono
 
