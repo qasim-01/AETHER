@@ -54,7 +54,7 @@ export default function ControlPanel() {
 
             <div className="mb-6 space-y-2 rounded-xl bg-white/5 p-4 border border-white/5">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-white/40 uppercase tracking-wider">Theme</span>
+                <span className="text-white/40 uppercase tracking-wider">Info</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               </div>
               <div className="flex justify-between items-center pt-2 text-sm border-t border-white/5">
