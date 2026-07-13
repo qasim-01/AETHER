@@ -40,7 +40,7 @@ export default function ControlPanel() {
             <div className="mb-8 mt-12 flex justify-between items-start">
               <div>
                 <h1 className="text-xl font-bold tracking-widest text-white">AETHER</h1>
-                <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1">Kinetic System Control</p>
+                <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1">Particle Simulator</p>
               </div>
               
               <button
@@ -54,7 +54,7 @@ export default function ControlPanel() {
 
             <div className="mb-6 space-y-2 rounded-xl bg-white/5 p-4 border border-white/5">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-white/40 uppercase tracking-wider">Telemetry Core</span>
+                <span className="text-white/40 uppercase tracking-wider">Theme</span>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               </div>
               <div className="flex justify-between items-center pt-2 text-sm border-t border-white/5">
@@ -68,7 +68,7 @@ export default function ControlPanel() {
             </div>
 
             <div className="mb-6">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 block mb-2 font-medium">Vector Tools</label>
+              <label className="text-[10px] uppercase tracking-widest text-white/40 block mb-2 font-medium">Tools</label>
               <div className="space-y-1.5">
                 <button
                   onClick={() => setActiveTool('attractor')}
@@ -107,7 +107,7 @@ export default function ControlPanel() {
             </div>
 
             <div className="mb-8">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 block mb-2 font-medium">Environmental Presets</label>
+              <label className="text-[10px] uppercase tracking-widest text-white/40 block mb-2 font-medium">Themes</label>
               <div className="grid grid-cols-2 gap-2">
                 {themesList.map((t) => (
                   <button
