@@ -1,17 +1,17 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Shuffle, Trash2, Eye, EyeOff, Radio, Target, Ban, Layers } from 'lucide-react';
+import { Play, Pause, Shuffle, Trash2, Eye, EyeOff, Radio, Target, Ban, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useSimulationStore } from '../lib/store/useSimulationStore';
 import { ThemeMode } from '../types/simulation';
 
 export default function ControlPanel() {
   const { 
     isPaused, togglePause, randomizeUniverse, clearForces, forces,
-    activeTool, setActiveTool, currentTheme, setTheme, sidebarOpen, toggleSidebar 
+    activeTool, setActiveTool, currentTheme, setTheme, 
+    sidebarOpen, toggleSidebar, nodesVisible, toggleNodesVisible
   } = useSimulationStore();
 
-  /* different color themes */
   const themesList: { id: ThemeMode; label: string }[] = [
     { id: 'NEON', label: 'Neon' },
     { id: 'FIRE', label: 'Fire' },
@@ -21,12 +21,11 @@ export default function ControlPanel() {
 
   return (
     <>
-      {/* making the sidebar be able to toggle on and off */}
       <button
         onClick={toggleSidebar}
         className="fixed top-6 left-6 z-30 flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/40 backdrop-blur-md text-white transition-all hover:bg-white/10"
       >
-        {sidebarOpen ? <EyeOff size={18} /> : <Eye size={18} />}
+        {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
       </button>
 
       <AnimatePresence>
@@ -38,12 +37,21 @@ export default function ControlPanel() {
             transition={{ type: 'spring', damping: 20, stiffness: 100 }}
             className="fixed bottom-6 top-6 left-6 z-20 w-80 overflow-y-auto rounded-2xl border border-white/10 bg-black/60 p-6 text-white backdrop-blur-xl shadow-2xl transition-all"
           >
-            <div className="mb-8 mt-12">
-              <h1 className="text-xl font-bold tracking-widest text-white">AETHER</h1>
-              <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1">Kinetic System Control</p>
+            <div className="mb-8 mt-12 flex justify-between items-start">
+              <div>
+                <h1 className="text-xl font-bold tracking-widest text-white">AETHER</h1>
+                <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1">Kinetic System Control</p>
+              </div>
+              
+              <button
+                onClick={toggleNodesVisible}
+                title={nodesVisible ? "Hide Nodes" : "Show Nodes"}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/60 transition-all hover:bg-white/10 hover:text-white"
+              >
+                {nodesVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+              </button>
             </div>
 
-            {/* layer of the parameters for the sim */}
             <div className="mb-6 space-y-2 rounded-xl bg-white/5 p-4 border border-white/5">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-white/40 uppercase tracking-wider">Telemetry Core</span>
@@ -51,7 +59,7 @@ export default function ControlPanel() {
               </div>
               <div className="flex justify-between items-center pt-2 text-sm border-t border-white/5">
                 <span className="text-white/60">Field Array</span>
-                <span className="font-mono text-xs font-semibold text-white">2,000 Pts</span>
+                <span className="font-mono text-xs font-semibold text-white">3,000 Pts</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/60">Active Field Nodes</span>
@@ -59,7 +67,6 @@ export default function ControlPanel() {
               </div>
             </div>
 
-            {/* configuring the vectors  */}
             <div className="mb-6">
               <label className="text-[10px] uppercase tracking-widest text-white/40 block mb-2 font-medium">Vector Tools</label>
               <div className="space-y-1.5">
@@ -99,7 +106,6 @@ export default function ControlPanel() {
               </div>
             </div>
 
-            {/* environmental presets */}
             <div className="mb-8">
               <label className="text-[10px] uppercase tracking-widest text-white/40 block mb-2 font-medium">Environmental Presets</label>
               <div className="grid grid-cols-2 gap-2">
@@ -119,7 +125,6 @@ export default function ControlPanel() {
               </div>
             </div>
 
-            {/* exec controls */}
             <div className="space-y-2 border-t border-white/10 pt-6">
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -135,7 +140,7 @@ export default function ControlPanel() {
                   className="flex items-center justify-center gap-2 rounded-xl bg-white/10 border border-white/10 text-white px-4 py-3 text-xs font-semibold uppercase tracking-wider transition-all hover:bg-white/20"
                 >
                   <Shuffle size={14} />
-                  <span>Procedural</span>
+                  <span>Generate</span>
                 </button>
               </div>
 
@@ -144,7 +149,7 @@ export default function ControlPanel() {
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 text-white/40 px-4 py-2.5 text-xs uppercase tracking-wider transition-all hover:border-white/20 hover:text-white/60"
               >
                 <Trash2 size={12} />
-                <span>Clear Topology</span>
+                <span>Clear Nodes</span>
               </button>
             </div>
           </motion.div>

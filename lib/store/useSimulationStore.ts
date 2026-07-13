@@ -7,11 +7,13 @@ interface SimulationState {
   activeTool: ActiveTool;
   currentTheme: ThemeMode;
   sidebarOpen: boolean;
+  nodesVisible: boolean;
   triggerRandomize: number;
   togglePause: () => void;
   setActiveTool: (tool: ActiveTool) => void;
   setTheme: (theme: ThemeMode) => void;
   toggleSidebar: () => void;
+  toggleNodesVisible: () => void;
   addForce: (force: ForceNode) => void;
   removeForceAt: (x: number, y: number, radius: number) => void;
   clearForces: () => void;
@@ -22,13 +24,15 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   isPaused: false,
   forces: [],
   activeTool: 'attractor',
-  currentTheme: 'MONO',
+  currentTheme: 'NEON',
   sidebarOpen: true,
+  nodesVisible: true,
   triggerRandomize: 0,
   togglePause: () => set((state) => ({ isPaused: !state.isPaused })),
   setActiveTool: (tool) => set({ activeTool: tool }),
   setTheme: (theme) => set({ currentTheme: theme }),
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  toggleNodesVisible: () => set((state) => ({ nodesVisible: !state.nodesVisible })),
   addForce: (force) => set((state) => ({ forces: [...state.forces, force] })),
   removeForceAt: (x: number, y: number, radius: number) => set((state) => ({
     forces: state.forces.filter(f => {
