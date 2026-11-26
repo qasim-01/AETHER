@@ -44,6 +44,10 @@ export default function CanvasStage() {
     sync();
     const unsub = useSimulationStore.subscribe(sync);
 
+    // Soft glow particles don't need full retina density; cap at 1.5× and let
+    // the engine drop further on its own if the frame rate sags.
+    engine.maxDpr = 1.5;
+    engine.adaptive = true;
     const resize = () => engine.resize(window.innerWidth, window.innerHeight);
     resize();
     window.addEventListener('resize', resize);

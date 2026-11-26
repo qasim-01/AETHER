@@ -150,7 +150,15 @@ export class ParticleEngine {
 
   // ───────────────────────────── lifecycle ─────────────────────────────
 
-  resize(width: number, height: number, dpr = Math.min(window.devicePixelRatio || 1, 2)) {
+  /** Upper bound on canvas pixel density; the adaptive loop never goes above it. */
+  maxDpr = 2;
+  /** When true, resolution drops automatically if the frame rate sags. */
+  adaptive = false;
+  private perfWindowStart = 0;
+  private perfFrames = 0;
+  private goodSeconds = 0;
+
+  resize(width: number, height: number, dpr = Math.min(window.devicePixelRatio || 1, this.maxDpr)) {
     const first = this.width === 0;
     this.dpr = dpr;
     this.canvas.width = Math.floor(width * dpr);
@@ -364,6 +372,50 @@ export class ParticleEngine {
     const avg = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
     this.stats.fps = avg > 0 ? 1000 / avg : 0;
     this.stats.particles = this.n;
+    if (this.adaptive) this.adaptResolution(now);
+  }
+
+  /**
+   * Once per second: if we're under ~45 FPS, render at fewer pixels (down to
+   * 0.75× density). After several smooth seconds, step back up. Trails are
+   * carried across each change so it's invisible apart from sharpness.
+   */
+  private adaptResolution(now: number) {
+    if (!this.perfWindowStart) this.perfWindowStart = now;
+    this.perfFrames++;
+    const elapsed = now - this.perfWindowStart;
+    if (elapsed < 1000) return;
+    const fps = (this.perfFrames * 1000) / elapsed;
+    this.perfWindowStart = now;
+    this.perfFrames = 0;
+    if (document.hidden) return;
+
+    const ceiling = Math.min(window.devicePixelRatio || 1, this.maxDpr);
+    if (fps < 45 && this.dpr > 0.75) {
+      this.goodSeconds = 0;
+      this.setDensity(Math.max(0.75, this.dpr * 0.8));
+    } else if (fps > 57) {
+      this.goodSeconds++;
+      if (this.goodSeconds >= 5 && this.dpr < ceiling) {
+        this.goodSeconds = 0;
+        this.setDensity(Math.min(ceiling, this.dpr / 0.8));
+      }
+    } else {
+      this.goodSeconds = 0;
+    }
+  }
+
+  /** Change pixel density without losing the current trails. */
+  private setDensity(dpr: number) {
+    if (Math.abs(dpr - this.dpr) < 0.01) return;
+    const copy = document.createElement('canvas');
+    copy.width = this.canvas.width;
+    copy.height = this.canvas.height;
+    copy.getContext('2d')!.drawImage(this.canvas, 0, 0);
+    const w = this.width;
+    const h = this.height;
+    this.resize(w, h, dpr);
+    this.ctx.drawImage(copy, 0, 0, w, h);
   }
 
   private step(dt: number, forces: ForceNode[], s: SimSettings) {
@@ -628,13 +680,16 @@ export class ParticleEngine {
         ctx.arc(0, 0, hr + 1.5 + Math.sin(t * 3) * 0.8, 0, Math.PI * 2);
         ctx.stroke();
       } else {
-        ctx.fillStyle = color;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 14;
+        // Cheap halo instead of shadowBlur (a per-draw Gaussian blur in Canvas2D).
+        const core = 4 + s * 0.6;
+        ctx.fillStyle = withAlpha(color, 0.18);
         ctx.beginPath();
-        ctx.arc(0, 0, 4 + s * 0.6, 0, Math.PI * 2);
+        ctx.arc(0, 0, core + 6, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, core, 0, Math.PI * 2);
+        ctx.fill();
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.25;
         const ring = 14 + s * 2.5;
