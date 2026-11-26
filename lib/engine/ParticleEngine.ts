@@ -58,17 +58,26 @@ export function symmetricPoints(x: number, y: number, w: number, h: number, sym:
   return pts;
 }
 
-function makeSprite(color: string): HTMLCanvasElement {
+function makeSprite(color: string, light = false): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = c.height = SPRITE_SIZE;
   const g = c.getContext('2d')!;
   const r = SPRITE_SIZE / 2;
   const grad = g.createRadialGradient(r, r, 0, r, r, r);
-  grad.addColorStop(0, color);
-  grad.addColorStop(0.12, color);
-  grad.addColorStop(0.3, withAlpha(color, 0.35));
-  grad.addColorStop(0.6, withAlpha(color, 0.08));
-  grad.addColorStop(1, withAlpha(color, 0));
+  if (light) {
+    // Crisp, mostly-opaque dot with a short soft edge: reads cleanly on paper
+    // with plain source-over blending (no expensive blend modes).
+    grad.addColorStop(0, color);
+    grad.addColorStop(0.42, withAlpha(color, 0.9));
+    grad.addColorStop(0.62, withAlpha(color, 0.22));
+    grad.addColorStop(1, withAlpha(color, 0));
+  } else {
+    grad.addColorStop(0, color);
+    grad.addColorStop(0.12, color);
+    grad.addColorStop(0.3, withAlpha(color, 0.35));
+    grad.addColorStop(0.6, withAlpha(color, 0.08));
+    grad.addColorStop(1, withAlpha(color, 0));
+  }
   g.fillStyle = grad;
   g.fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE);
   return c;
@@ -321,8 +330,9 @@ export class ParticleEngine {
   private ensureSprites(theme: ThemeColors) {
     if (this.spriteTheme === theme) return;
     this.spriteTheme = theme;
-    this.paletteSprites = theme.particles.map(makeSprite);
-    this.velocitySprites = sampleGradient(theme.gradient, VELOCITY_BUCKETS).map(makeSprite);
+    const light = !!theme.light;
+    this.paletteSprites = theme.particles.map((c) => makeSprite(c, light));
+    this.velocitySprites = sampleGradient(theme.gradient, VELOCITY_BUCKETS).map((c) => makeSprite(c, light));
   }
 
   private frame(now: number) {
@@ -503,16 +513,18 @@ export class ParticleEngine {
     const [br, bg, bb] = theme.bg;
 
     ctx.globalCompositeOperation = 'source-over';
-    const fade = paused ? 0 : Math.max(0.06, 0.04 + (1 - s.trail) * 0.6);
+    const minFade = theme.light ? 0.16 : 0.06;
+    const fade = paused ? 0 : Math.max(minFade, 0.04 + (1 - s.trail) * 0.6);
     if (fade > 0 || paused) {
       ctx.fillStyle = `rgba(${br},${bg},${bb},${paused ? 1 : fade})`;
       ctx.fillRect(0, 0, this.width, this.height);
     }
 
-    const blend: GlobalCompositeOperation = theme.light ? 'multiply' : 'lighter';
+    // Additive light on dark; plain painting on paper. Both stay on the GPU fast path.
+    const blend: GlobalCompositeOperation = theme.light ? 'source-over' : 'lighter';
     ctx.globalCompositeOperation = blend;
     const glow = s.glow;
-    const scale = 5.2 * glow;
+    const scale = (theme.light ? 3.4 : 5.2) * glow;
     const velocity = s.colorMode === 'velocity';
     const vs = this.velocitySprites;
     const ps = this.paletteSprites;
@@ -570,7 +582,7 @@ export class ParticleEngine {
         halo.addColorStop(0, withAlpha(color, 0.55));
         halo.addColorStop(0.25, withAlpha(color, 0.15));
         halo.addColorStop(1, withAlpha(color, 0));
-        ctx.globalCompositeOperation = theme.light ? 'multiply' : 'lighter';
+        ctx.globalCompositeOperation = theme.light ? 'source-over' : 'lighter';
         ctx.fillStyle = halo;
         ctx.beginPath();
         ctx.arc(0, 0, hr * 4, 0, Math.PI * 2);
