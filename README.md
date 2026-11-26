@@ -22,6 +22,8 @@ ____
 - **Six presets:** Spiral Galaxy, Binary Stars, Event Horizon, Nebula, Supernova and Chaos, plus Big Bang, Shockwave, Agitate and Scatter events.
 - **Kaleidoscope symmetry:** mirror every placed node 2, 4 or 6 times around the centre.
 - **Physics controls:** particle count (500 to 15,000), node strength, time scale, drag, and bounce or wrap-around boundaries.
+- **Light & dark mode:** an ink-on-paper light mode alongside the glowing dark mode (`M`).
+- **One-click reset:** wipe back to an empty black universe with freshly scattered particles (`0`).
 - **Visual controls:** 8 themes (Neon, Fire, Ocean, Aurora, Synthwave, Nebula, Toxic, Mono), palette or velocity-based colouring, trail length and glow.
 - **Capture:** PNG screenshots and WebM video recording of the canvas.
 - **Live HUD:** FPS, particle and node counts, particles consumed, and a kinetic-energy sparkline.

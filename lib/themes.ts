@@ -112,3 +112,45 @@ export function sampleGradient(stops: string[], steps: number): string[] {
   }
   return out;
 }
+
+// ───────────────────────────── light mode ─────────────────────────────
+
+const PAPER: [number, number, number] = [244, 243, 238];
+const INK = '#1c1c2e';
+
+/** Darken a colour so it reads as ink on paper; near-white becomes ink. */
+function inkify(hex: string) {
+  const [r, g, b] = hexToRgb(hex);
+  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  if (lum > 0.82) return INK;
+  const k = 0.78;
+  const h = (v: number) => Math.round(v * k).toString(16).padStart(2, '0');
+  return `#${h(r)}${h(g)}${h(b)}`;
+}
+
+const lightCache = new Map<ThemeMode, ThemeColors>();
+
+/** The same palette, re-tuned for a light paper background. */
+export function getTheme(mode: ThemeMode, appearance: 'dark' | 'light'): ThemeColors {
+  const base = THEMES[mode];
+  if (appearance === 'dark') return base;
+  let t = lightCache.get(mode);
+  if (!t) {
+    // In multiply mode the slow end of the gradient should be faint, the fast end strong.
+    const gradient = [...base.gradient].reverse().map(inkify);
+    t = {
+      ...base,
+      bg: PAPER,
+      particles: base.particles.map(inkify),
+      gradient: ['#c9c6d6', ...gradient.slice(1)],
+      attractor: inkify(base.attractor),
+      repulsor: inkify(base.repulsor),
+      vortex: inkify(base.vortex),
+      singularity: INK,
+      accent: inkify(base.accent),
+      light: true,
+    };
+    lightCache.set(mode, t);
+  }
+  return t;
+}

@@ -5,13 +5,14 @@ import { useSimulationStore } from '@/lib/store/useSimulationStore';
 import { ParticleEngine, symmetricPoints } from '@/lib/engine/ParticleEngine';
 import { setEngine } from '@/lib/engine/engineRef';
 import { uid } from '@/lib/engine/presets';
-import { THEMES } from '@/lib/themes';
+import { getTheme } from '@/lib/themes';
 import { ForceNode } from '@/types/simulation';
 
 const HIT_RADIUS = 26;
 
 export default function CanvasStage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const overlayRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<ParticleEngine | null>(null);
   const drag = useRef<{ id: string; ox: number; oy: number } | null>(null);
   const erasing = useRef(false);
@@ -24,16 +25,21 @@ export default function CanvasStage() {
     const engine = new ParticleEngine(canvas, {
       getForces: () => get().forces,
       getSettings: () => get().settings,
-      getTheme: () => THEMES[get().currentTheme],
+      getTheme: () => getTheme(get().currentTheme, get().appearance),
       isPaused: () => get().isPaused,
-    });
+    }, overlayRef.current ?? undefined);
     engineRef.current = engine;
     setEngine(engine);
 
+    let lastLook = '';
     const sync = () => {
       const s = get();
       engine.tool = s.activeTool;
       engine.showNodes = s.nodesVisible;
+      // Switching between light and dark needs a clean slate, not a slow fade.
+      const look = s.appearance;
+      if (lastLook && look !== lastLook) engine.clear();
+      lastLook = look;
     };
     sync();
     const unsub = useSimulationStore.subscribe(sync);
@@ -156,6 +162,7 @@ export default function CanvasStage() {
   };
 
   return (
+    <>
     <canvas
       ref={canvasRef}
       className="fixed inset-0 z-0 h-full w-full cursor-none touch-none"
@@ -169,5 +176,8 @@ export default function CanvasStage() {
       onWheel={onWheel}
       onContextMenu={(e) => e.preventDefault()}
     />
+    {/* Trail-free layer for nodes and the cursor; the canvas below handles input. */}
+    <canvas ref={overlayRef} className="pointer-events-none fixed inset-0 z-[2] h-full w-full" aria-hidden />
+    </>
   );
 }

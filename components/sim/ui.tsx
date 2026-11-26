@@ -5,7 +5,7 @@ import { ReactNode } from 'react';
 export function Glass({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-[#07070d]/70 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] backdrop-blur-xl ${className}`}
+      className={`rounded-2xl border border-ink/10 bg-panel/70 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl ${className}`}
     >
       {children}
     </div>
@@ -39,13 +39,13 @@ export function IconButton({
       disabled={disabled}
       aria-label={label}
       className={`group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all disabled:cursor-not-allowed disabled:opacity-30 sm:h-11 sm:w-11 ${
-        active ? 'bg-white/15 text-white' : 'text-white/55 hover:bg-white/[0.07] hover:text-white'
+        active ? 'bg-ink/15 text-ink' : 'text-ink/55 hover:bg-ink/[0.07] hover:text-ink'
       } ${className}`}
     >
       {children}
       {tooltip !== 'none' && (
         <span
-          className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg border border-white/10 bg-black/80 px-2.5 py-1 text-[11px] text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 ${pos}`}
+          className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg border border-ink/10 bg-panel/90 px-2.5 py-1 text-[11px] text-ink opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 ${pos}`}
         >
           {label}
         </span>
@@ -77,8 +77,8 @@ export function Slider({
   return (
     <label className="block">
       <div className="mb-2 flex items-center justify-between text-xs">
-        <span className="text-white/60">{label}</span>
-        <span className="font-mono text-[11px] text-white">{format ? format(value) : value}</span>
+        <span className="text-ink/60">{label}</span>
+        <span className="font-mono text-[11px] text-ink">{format ? format(value) : value}</span>
       </div>
       <input
         type="range"
@@ -109,7 +109,7 @@ export function Segmented<T extends string | number>({
   accent: string;
 }) {
   return (
-    <div className="flex rounded-xl border border-white/10 bg-white/[0.03] p-0.5">
+    <div className="flex rounded-xl border border-ink/10 bg-ink/[0.03] p-0.5">
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -117,7 +117,7 @@ export function Segmented<T extends string | number>({
             key={String(o.value)}
             onClick={() => onChange(o.value)}
             className={`flex-1 rounded-[10px] px-2 py-1.5 text-[11px] font-medium transition-all ${
-              active ? 'text-black' : 'text-white/50 hover:text-white'
+              active ? 'text-panel' : 'text-ink/50 hover:text-ink'
             }`}
             style={active ? { background: accent } : undefined}
           >
@@ -130,5 +130,5 @@ export function Segmented<T extends string | number>({
 }
 
 export function SectionLabel({ children }: { children: ReactNode }) {
-  return <div className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">{children}</div>;
+  return <div className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-ink/35">{children}</div>;
 }

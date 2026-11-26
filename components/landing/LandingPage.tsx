@@ -263,7 +263,7 @@ export default function LandingPage() {
       <section id="features" className="relative mx-auto max-w-7xl scroll-mt-16 px-5 py-28 sm:px-8 sm:py-36">
         <SectionHeading
           eyebrow="The sandbox"
-          title="Everything you need to play god."
+          title="Everything you need to shape a universe."
           body="A complete instrument panel for building, tuning and capturing your own universes."
         />
         <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

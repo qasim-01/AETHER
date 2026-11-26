@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ForceNode, ActiveTool, ThemeMode, SimSettings } from '../../types/simulation';
+import { ForceNode, ActiveTool, ThemeMode, SimSettings, Appearance } from '../../types/simulation';
 
 export const DEFAULT_SETTINGS: SimSettings = {
   particleCount: 4000,
@@ -22,6 +22,7 @@ interface SimulationState {
   history: ForceNode[][];
   activeTool: ActiveTool;
   currentTheme: ThemeMode;
+  appearance: Appearance;
   settings: SimSettings;
   panelOpen: boolean;
   uiHidden: boolean;
@@ -32,6 +33,7 @@ interface SimulationState {
   togglePause: () => void;
   setActiveTool: (tool: ActiveTool) => void;
   setTheme: (theme: ThemeMode) => void;
+  toggleAppearance: () => void;
   togglePanel: () => void;
   toggleUi: () => void;
   toggleNodesVisible: () => void;
@@ -63,6 +65,7 @@ export const useSimulationStore = create<SimulationState>()(
       history: [],
       activeTool: 'attractor',
       currentTheme: 'NEON',
+      appearance: 'dark',
       settings: DEFAULT_SETTINGS,
       panelOpen: true,
       uiHidden: false,
@@ -73,6 +76,7 @@ export const useSimulationStore = create<SimulationState>()(
       togglePause: () => set((s) => ({ isPaused: !s.isPaused })),
       setActiveTool: (tool) => set({ activeTool: tool }),
       setTheme: (theme) => set({ currentTheme: theme }),
+      toggleAppearance: () => set((s) => ({ appearance: s.appearance === 'dark' ? 'light' : 'dark' })),
       togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
       toggleUi: () => set((s) => ({ uiHidden: !s.uiHidden })),
       toggleNodesVisible: () => set((s) => ({ nodesVisible: !s.nodesVisible })),
@@ -106,7 +110,7 @@ export const useSimulationStore = create<SimulationState>()(
     {
       name: 'aether-prefs',
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ currentTheme: s.currentTheme, settings: s.settings }),
+      partialize: (s) => ({ currentTheme: s.currentTheme, appearance: s.appearance, settings: s.settings }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<SimulationState>;
         return {

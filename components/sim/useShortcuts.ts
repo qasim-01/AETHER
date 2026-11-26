@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useSimulationStore } from '@/lib/store/useSimulationStore';
 import { THEME_ORDER } from '@/lib/themes';
 import {
-  randomize, bigBang, shockwaveCenter, shake, resetParticles, screenshot, toggleRecording,
+  randomize, bigBang, shockwaveCenter, shake, resetParticles, screenshot, toggleRecording, resetUniverse,
 } from '@/lib/engine/actions';
 import { TOOLS } from './tools';
 
@@ -41,6 +41,9 @@ export function useShortcuts() {
         case 'Escape':
           s.setHelpOpen(false);
           break;
+        case '0':
+          resetUniverse();
+          break;
         case '?':
           s.setHelpOpen(!s.helpOpen);
           break;
@@ -59,6 +62,7 @@ export function useShortcuts() {
             }
             case 'v': s.setSetting('colorMode', s.settings.colorMode === 'palette' ? 'velocity' : 'palette'); break;
             case 'n': s.toggleNodesVisible(); break;
+            case 'm': s.toggleAppearance(); break;
             case 'o': s.togglePanel(); break;
             case 'h': s.toggleUi(); break;
             case 'f': toggleFullscreen(); break;

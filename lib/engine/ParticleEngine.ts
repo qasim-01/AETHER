@@ -88,6 +88,11 @@ function withAlpha(color: string, a: number) {
 export class ParticleEngine {
   readonly canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  /** Optional trail-free layer for nodes and the cursor. */
+  private overlay: HTMLCanvasElement | null;
+  private octx: CanvasRenderingContext2D | null;
+  /** Main + overlay merged each frame while recording video. */
+  private composite: HTMLCanvasElement | null = null;
   private src: EngineSources;
 
   width = 0;
@@ -122,9 +127,11 @@ export class ParticleEngine {
   /** Live stats, polled by the HUD. */
   stats = { fps: 0, energy: 0, absorbed: 0, particles: 0 };
 
-  constructor(canvas: HTMLCanvasElement, sources: EngineSources) {
+  constructor(canvas: HTMLCanvasElement, sources: EngineSources, overlay?: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d', { alpha: false })!;
+    this.overlay = overlay ?? null;
+    this.octx = overlay ? overlay.getContext('2d')! : null;
     this.src = sources;
   }
 
@@ -140,10 +147,49 @@ export class ParticleEngine {
     this.width = width;
     this.height = height;
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const [r, g, b] = this.src.getTheme().bg;
-    this.ctx.fillStyle = `rgb(${r},${g},${b})`;
-    this.ctx.fillRect(0, 0, width, height);
+    if (this.overlay && this.octx) {
+      this.overlay.width = this.canvas.width;
+      this.overlay.height = this.canvas.height;
+      this.overlay.style.width = `${width}px`;
+      this.overlay.style.height = `${height}px`;
+      this.octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    if (this.composite) {
+      this.composite.width = this.canvas.width;
+      this.composite.height = this.canvas.height;
+    }
+    this.clear();
     if (first) this.seed('uniform');
+  }
+
+  /** Wipe all trails back to the theme background. */
+  clear() {
+    const [r, g, b] = this.src.getTheme().bg;
+    this.ctx.globalCompositeOperation = 'source-over';
+    this.ctx.fillStyle = `rgb(${r},${g},${b})`;
+    this.ctx.fillRect(0, 0, this.width, this.height);
+  }
+
+  /** Start merging nodes into a single canvas each frame (for video capture). */
+  startComposite() {
+    if (!this.composite) {
+      this.composite = document.createElement('canvas');
+      this.composite.width = this.canvas.width;
+      this.composite.height = this.canvas.height;
+    }
+    this.updateComposite();
+    return this.composite;
+  }
+
+  stopComposite() {
+    this.composite = null;
+  }
+
+  private updateComposite() {
+    if (!this.composite) return;
+    const c = this.composite.getContext('2d')!;
+    c.drawImage(this.canvas, 0, 0);
+    if (this.overlay) c.drawImage(this.overlay, 0, 0);
   }
 
   start() {
@@ -463,7 +509,8 @@ export class ParticleEngine {
       ctx.fillRect(0, 0, this.width, this.height);
     }
 
-    ctx.globalCompositeOperation = 'lighter';
+    const blend: GlobalCompositeOperation = theme.light ? 'multiply' : 'lighter';
+    ctx.globalCompositeOperation = blend;
     const glow = s.glow;
     const scale = 5.2 * glow;
     const velocity = s.colorMode === 'velocity';
@@ -485,7 +532,7 @@ export class ParticleEngine {
     }
 
     // Shockwave rings.
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = blend;
     for (const p of this.pulses) {
       const a = 1 - p.r / p.max;
       ctx.beginPath();
@@ -496,12 +543,18 @@ export class ParticleEngine {
     }
 
     ctx.globalCompositeOperation = 'source-over';
-    if (this.showNodes) this.renderNodes(theme, forces);
-    if (this.showCursor && this.pointer.inside && this.tool) this.renderCursor(theme, s);
+
+    // Nodes and cursor go on the overlay (cleared every frame) so trails never smear them.
+    const top = this.octx ?? ctx;
+    if (this.octx) {
+      this.octx.clearRect(0, 0, this.width, this.height);
+    }
+    if (this.showNodes) this.renderNodes(top, theme, forces);
+    this.updateComposite();
+    if (this.showCursor && this.pointer.inside && this.tool) this.renderCursor(top, theme, s);
   }
 
-  private renderNodes(theme: ThemeColors, forces: ForceNode[]) {
-    const ctx = this.ctx;
+  private renderNodes(ctx: CanvasRenderingContext2D, theme: ThemeColors, forces: ForceNode[]) {
     const t = performance.now() / 1000;
     for (const f of forces) {
       const color = theme[f.type];
@@ -517,7 +570,7 @@ export class ParticleEngine {
         halo.addColorStop(0, withAlpha(color, 0.55));
         halo.addColorStop(0.25, withAlpha(color, 0.15));
         halo.addColorStop(1, withAlpha(color, 0));
-        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalCompositeOperation = theme.light ? 'multiply' : 'lighter';
         ctx.fillStyle = halo;
         ctx.beginPath();
         ctx.arc(0, 0, hr * 4, 0, Math.PI * 2);
@@ -577,7 +630,7 @@ export class ParticleEngine {
       if (hovered) {
         ctx.globalAlpha = 1;
         ctx.setLineDash([3, 4]);
-        ctx.strokeStyle = this.tool === 'eraser' ? '#ff4d6d' : '#ffffff';
+        ctx.strokeStyle = this.tool === 'eraser' ? '#ff4d6d' : theme.light ? '#1c1c2e' : '#ffffff';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(0, 0, 34 + s * 2, 0, Math.PI * 2);
@@ -588,8 +641,7 @@ export class ParticleEngine {
     }
   }
 
-  private renderCursor(theme: ThemeColors, s: SimSettings) {
-    const ctx = this.ctx;
+  private renderCursor(ctx: CanvasRenderingContext2D, theme: ThemeColors, s: SimSettings) {
     const tool = this.tool!;
     const color =
       tool === 'eraser' ? '#ff4d6d'
@@ -627,6 +679,17 @@ export class ParticleEngine {
 
   /** Capture the current frame as a PNG data URL. */
   snapshot() {
-    return this.canvas.toDataURL('image/png');
+    if (!this.overlay) return this.canvas.toDataURL('image/png');
+    const c = document.createElement('canvas');
+    c.width = this.canvas.width;
+    c.height = this.canvas.height;
+    const g = c.getContext('2d')!;
+    g.drawImage(this.canvas, 0, 0);
+    if (this.showNodes) {
+      // Redraw nodes without the cursor on top of the particle layer.
+      g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      this.renderNodes(g, this.src.getTheme(), this.src.getForces());
+    }
+    return c.toDataURL('image/png');
   }
 }

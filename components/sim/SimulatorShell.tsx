@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowLeft, Camera, Video, Square, CircleHelp, Maximize, PanelRightClose, PanelRightOpen, EyeOff,
+  ArrowLeft, Camera, Video, Square, CircleHelp, Maximize, PanelRightClose, PanelRightOpen, EyeOff, Sun, Moon,
 } from 'lucide-react';
 import { useSimulationStore } from '@/lib/store/useSimulationStore';
-import { THEMES } from '@/lib/themes';
+import { getTheme } from '@/lib/themes';
 import { loadPreset, screenshot, toggleRecording, canRecord } from '@/lib/engine/actions';
 import CanvasStage from './CanvasStage';
 import Toolbar from './Toolbar';
@@ -24,11 +24,14 @@ export default function SimulatorShell() {
   const toggleUi = useSimulationStore((s) => s.toggleUi);
   const panelOpen = useSimulationStore((s) => s.panelOpen);
   const togglePanel = useSimulationStore((s) => s.togglePanel);
+  const appearance = useSimulationStore((s) => s.appearance);
+  const toggleAppearance = useSimulationStore((s) => s.toggleAppearance);
+  const light = appearance === 'light';
   const setHelpOpen = useSimulationStore((s) => s.setHelpOpen);
   const isPaused = useSimulationStore((s) => s.isPaused);
   const isRecording = useSimulationStore((s) => s.isRecording);
   const activeTool = useSimulationStore((s) => s.activeTool);
-  const theme = THEMES[useSimulationStore((s) => s.currentTheme)];
+  const theme = getTheme(useSimulationStore((s) => s.currentTheme), useSimulationStore((s) => s.appearance));
   const [recordSupported, setRecordSupported] = useState(false);
 
   useEffect(() => {
@@ -45,13 +48,19 @@ export default function SimulatorShell() {
   const hint = TOOLS.find((t) => t.id === activeTool)?.hint;
 
   return (
-    <main className="fixed inset-0 overflow-hidden bg-black text-white">
+    <main className={`sim-root fixed inset-0 overflow-hidden text-ink ${light ? 'sim-light bg-[#f4f3ee]' : 'bg-black'}`}>
       <CanvasStage />
-      <div className="pointer-events-none fixed inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.55)_100%)]" />
+      <div
+        className={`pointer-events-none fixed inset-0 z-[1] transition-opacity duration-500 ${
+          light
+            ? 'bg-[radial-gradient(ellipse_at_center,transparent_60%,rgba(120,110,90,0.14)_100%)]'
+            : 'bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.55)_100%)]'
+        }`}
+      />
 
       {/* Entry flash from the landing page warp */}
       <motion.div
-        className="pointer-events-none fixed inset-0 z-[60] bg-white"
+        className="pointer-events-none fixed inset-0 z-[60] bg-[#fff]"
         initial={{ opacity: 0.9 }}
         animate={{ opacity: 0 }}
         transition={{ duration: 1.1, ease: 'easeOut' }}
@@ -72,12 +81,12 @@ export default function SimulatorShell() {
               <div className="pointer-events-auto flex items-center gap-2">
                 <Link
                   href="/"
-                  className="group flex h-12 items-center gap-3 rounded-2xl border border-white/10 bg-[#07070d]/70 pl-3 pr-4 backdrop-blur-xl transition-colors hover:border-white/25"
+                  className="group flex h-12 items-center gap-3 rounded-2xl border border-ink/10 bg-panel/70 pl-3 pr-4 backdrop-blur-xl transition-colors hover:border-ink/25"
                 >
-                  <ArrowLeft size={15} className="text-white/40 transition-transform group-hover:-translate-x-0.5 group-hover:text-white" />
+                  <ArrowLeft size={15} className="text-ink/40 transition-transform group-hover:-translate-x-0.5 group-hover:text-ink" />
                   <span className="font-display text-sm font-bold tracking-[0.35em]">AETHER</span>
                 </Link>
-                <div className="hidden h-12 items-center gap-2 rounded-2xl border border-white/10 bg-[#07070d]/70 px-3.5 font-mono text-[10px] uppercase tracking-widest backdrop-blur-xl md:flex">
+                <div className="hidden h-12 items-center gap-2 rounded-2xl border border-ink/10 bg-panel/70 px-3.5 font-mono text-[10px] uppercase tracking-widest backdrop-blur-xl md:flex">
                   {isRecording ? (
                     <>
                       <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
@@ -89,7 +98,7 @@ export default function SimulatorShell() {
                         className={`h-1.5 w-1.5 rounded-full ${isPaused ? '' : 'animate-pulse'}`}
                         style={{ background: isPaused ? '#fbbf24' : theme.accent }}
                       />
-                      <span className="text-white/50">{isPaused ? 'Frozen' : 'Live'}</span>
+                      <span className="text-ink/50">{isPaused ? 'Frozen' : 'Live'}</span>
                     </>
                   )}
                 </div>
@@ -109,6 +118,9 @@ export default function SimulatorShell() {
                       <CircleHelp size={17} />
                     </IconButton>
                   </span>
+                  <IconButton label={light ? 'Dark mode (M)' : 'Light mode (M)'} onClick={toggleAppearance} tooltip="bottom">
+                    {light ? <Moon size={17} /> : <Sun size={17} />}
+                  </IconButton>
                   <IconButton label={panelOpen ? 'Hide settings (O)' : 'Show settings (O)'} onClick={togglePanel} tooltip="bottom">
                     {panelOpen ? <PanelRightClose size={17} /> : <PanelRightOpen size={17} />}
                   </IconButton>
@@ -141,7 +153,7 @@ export default function SimulatorShell() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
-                  className="rounded-full border border-white/10 bg-black/50 px-4 py-2 text-[11px] text-white/60 backdrop-blur-md"
+                  className="rounded-full border border-ink/10 bg-panel/60 px-4 py-2 text-[11px] text-ink/60 backdrop-blur-md"
                 >
                   {hint}
                 </motion.div>
@@ -186,9 +198,9 @@ export default function SimulatorShell() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
             exit={{ opacity: 0 }}
-            className="fixed bottom-5 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/10 bg-black/40 px-4 py-2 text-[11px] text-white/40 backdrop-blur transition-colors hover:text-white"
+            className="fixed bottom-5 left-1/2 z-20 -translate-x-1/2 rounded-full border border-ink/10 bg-panel/50 px-4 py-2 text-[11px] text-ink/40 backdrop-blur transition-colors hover:text-ink"
           >
-            Press <kbd className="font-mono text-white/70">H</kbd> to show the interface
+            Press <kbd className="font-mono text-ink/70">H</kbd> to show the interface
           </motion.button>
         )}
       </AnimatePresence>
