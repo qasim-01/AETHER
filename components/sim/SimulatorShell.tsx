@@ -81,12 +81,12 @@ export default function SimulatorShell() {
               <div className="pointer-events-auto flex items-center gap-2">
                 <Link
                   href="/"
-                  className="group flex h-12 items-center gap-3 rounded-2xl border border-ink/10 bg-panel/70 pl-3 pr-4 backdrop-blur-xl transition-colors hover:border-ink/25"
+                  className="group flex h-12 items-center gap-3 rounded-2xl border border-ink/10 bg-panel/80 pl-3 pr-4 backdrop-blur-md transition-colors hover:border-ink/25"
                 >
                   <ArrowLeft size={15} className="text-ink/40 transition-transform group-hover:-translate-x-0.5 group-hover:text-ink" />
                   <span className="font-display text-sm font-bold tracking-[0.35em]">AETHER</span>
                 </Link>
-                <div className="hidden h-12 items-center gap-2 rounded-2xl border border-ink/10 bg-panel/70 px-3.5 font-mono text-[10px] uppercase tracking-widest backdrop-blur-xl md:flex">
+                <div className="hidden h-12 items-center gap-2 rounded-2xl border border-ink/10 bg-panel/80 px-3.5 font-mono text-[10px] uppercase tracking-widest backdrop-blur-md md:flex">
                   {isRecording ? (
                     <>
                       <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />

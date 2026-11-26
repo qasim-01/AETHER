@@ -115,17 +115,44 @@ export function sampleGradient(stops: string[], steps: number): string[] {
 
 // ───────────────────────────── light mode ─────────────────────────────
 
-const PAPER: [number, number, number] = [244, 243, 238];
-const INK = '#1c1c2e';
+const PAPER: [number, number, number] = [246, 245, 241];
 
-/** Darken a colour so it reads as ink on paper; near-white becomes ink. */
-function inkify(hex: string) {
-  const [r, g, b] = hexToRgb(hex);
-  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  if (lum > 0.82) return INK;
-  const k = 0.78;
-  const h = (v: number) => Math.round(v * k).toString(16).padStart(2, '0');
-  return `#${h(r)}${h(g)}${h(b)}`;
+function rgbToHsl([r, g, b]: [number, number, number]): [number, number, number] {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const sat = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h /= 6;
+  return [h, sat, l];
+}
+
+function hsl(h: number, sat: number, l: number) {
+  const f = (n: number) => {
+    const k = (n + h * 12) % 12;
+    const a = sat * Math.min(l, 1 - l);
+    return Math.round((l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))) * 255)
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+/**
+ * Re-tune a colour for paper: keep its hue, make it a rich, saturated
+ * mid-tone. Never near-black: lightness stays at or above ~0.4.
+ * Near-greys (white in most palettes) borrow the theme accent's hue.
+ */
+function forPaper(hex: string, accentHue: number, lightness = 0.47) {
+  const [h, sat, l] = rgbToHsl(hexToRgb(hex));
+  if (sat < 0.15) {
+    // Mono stays mono, but as mid greys rather than black.
+    return Number.isNaN(accentHue) ? hsl(230, 0.06, 0.4 + (1 - l) * 0.25) : hsl(accentHue, 0.85, lightness);
+  }
+  return hsl(h, Math.max(0.8, sat), lightness);
 }
 
 const lightCache = new Map<ThemeMode, ThemeColors>();
@@ -136,18 +163,23 @@ export function getTheme(mode: ThemeMode, appearance: 'dark' | 'light'): ThemeCo
   if (appearance === 'dark') return base;
   let t = lightCache.get(mode);
   if (!t) {
-    // In multiply mode the slow end of the gradient should be faint, the fast end strong.
-    const gradient = [...base.gradient].reverse().map(inkify);
+    const [ah, asat] = rgbToHsl(hexToRgb(base.accent));
+    const accentHue = asat < 0.15 ? NaN : ah;
+    const paper = (c: string, l?: number) => forPaper(c, accentHue, l);
+    // Velocity: slow particles are a soft tint, fast ones a deep saturated tone.
+    const stops = base.gradient.filter((c) => rgbToHsl(hexToRgb(c))[1] >= 0.15);
+    const src = stops.length >= 2 ? stops : base.gradient;
+    const gradient = src.map((c, i) => paper(c, 0.68 - (i / (src.length - 1)) * 0.26));
     t = {
       ...base,
       bg: PAPER,
-      particles: base.particles.map(inkify),
-      gradient: ['#c9c6d6', ...gradient.slice(1)],
-      attractor: inkify(base.attractor),
-      repulsor: inkify(base.repulsor),
-      vortex: inkify(base.vortex),
-      singularity: INK,
-      accent: inkify(base.accent),
+      particles: base.particles.map((c) => paper(c)),
+      gradient,
+      attractor: paper(base.attractor, 0.42),
+      repulsor: paper(base.repulsor, 0.42),
+      vortex: paper(base.vortex, 0.42),
+      singularity: paper(base.accent, 0.34),
+      accent: paper(base.accent, 0.42),
       light: true,
     };
     lightCache.set(mode, t);
