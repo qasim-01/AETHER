@@ -5,7 +5,7 @@ import { ReactNode } from 'react';
 export function Glass({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-2xl border border-ink/10 bg-panel/70 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl ${className}`}
+      className={`rounded-2xl border border-ink/10 bg-panel/80 shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)] backdrop-blur-md ${className}`}
     >
       {children}
     </div>

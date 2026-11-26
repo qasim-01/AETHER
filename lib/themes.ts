@@ -142,17 +142,17 @@ function hsl(h: number, sat: number, l: number) {
 }
 
 /**
- * Re-tune a colour for paper: keep its hue, push it to a rich mid-tone.
- * Near-greys (white in most palettes) borrow the theme accent's hue instead
- * of turning into flat black ink.
+ * Re-tune a colour for paper: keep its hue, make it a rich, saturated
+ * mid-tone. Never near-black: lightness stays at or above ~0.4.
+ * Near-greys (white in most palettes) borrow the theme accent's hue.
  */
-function forPaper(hex: string, accentHue: number, lightness = 0.44) {
+function forPaper(hex: string, accentHue: number, lightness = 0.47) {
   const [h, sat, l] = rgbToHsl(hexToRgb(hex));
   if (sat < 0.15) {
-    // Mono stays mono: map brightness to a graphite tone.
-    return Number.isNaN(accentHue) ? hsl(0, 0, 0.12 + (1 - l) * 0.45) : hsl(accentHue, 0.55, 0.26);
+    // Mono stays mono, but as mid greys rather than black.
+    return Number.isNaN(accentHue) ? hsl(230, 0.06, 0.4 + (1 - l) * 0.25) : hsl(accentHue, 0.85, lightness);
   }
-  return hsl(h, Math.min(1, Math.max(0.7, sat)), lightness);
+  return hsl(h, Math.max(0.8, sat), lightness);
 }
 
 const lightCache = new Map<ThemeMode, ThemeColors>();
@@ -169,17 +169,17 @@ export function getTheme(mode: ThemeMode, appearance: 'dark' | 'light'): ThemeCo
     // Velocity: slow particles are a soft tint, fast ones a deep saturated tone.
     const stops = base.gradient.filter((c) => rgbToHsl(hexToRgb(c))[1] >= 0.15);
     const src = stops.length >= 2 ? stops : base.gradient;
-    const gradient = src.map((c, i) => paper(c, 0.72 - (i / (src.length - 1)) * 0.36));
+    const gradient = src.map((c, i) => paper(c, 0.68 - (i / (src.length - 1)) * 0.26));
     t = {
       ...base,
       bg: PAPER,
       particles: base.particles.map((c) => paper(c)),
       gradient,
-      attractor: paper(base.attractor, 0.4),
-      repulsor: paper(base.repulsor, 0.4),
-      vortex: paper(base.vortex, 0.4),
-      singularity: '#16161f',
-      accent: paper(base.accent, 0.38),
+      attractor: paper(base.attractor, 0.42),
+      repulsor: paper(base.repulsor, 0.42),
+      vortex: paper(base.vortex, 0.42),
+      singularity: paper(base.accent, 0.34),
+      accent: paper(base.accent, 0.42),
       light: true,
     };
     lightCache.set(mode, t);

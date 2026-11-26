@@ -118,6 +118,10 @@ export class ParticleEngine {
 
   private paletteSprites: HTMLCanvasElement[] = [];
   private velocitySprites: HTMLCanvasElement[] = [];
+  /** Flat colours used by the light-mode rect renderer. */
+  private paletteColors: string[] = [];
+  private velocityColors: string[] = [];
+  private bucket = new Uint8Array(0);
   private spriteTheme: ThemeColors | null = null;
 
   private pulses: Pulse[] = [];
@@ -333,6 +337,8 @@ export class ParticleEngine {
     const light = !!theme.light;
     this.paletteSprites = theme.particles.map((c) => makeSprite(c, light));
     this.velocitySprites = sampleGradient(theme.gradient, VELOCITY_BUCKETS).map((c) => makeSprite(c, light));
+    this.paletteColors = theme.particles;
+    this.velocityColors = sampleGradient(theme.gradient, VELOCITY_BUCKETS);
   }
 
   private frame(now: number) {
@@ -530,7 +536,31 @@ export class ParticleEngine {
     const ps = this.paletteSprites;
     const vmax = 12;
 
-    for (let i = 0; i < n; i++) {
+    if (theme.light) {
+      // Paper renderer: solid dots drawn as rects, batched by colour. fillRect is
+      // the cheapest Canvas2D primitive and needs one fillStyle change per colour,
+      // not per particle, so this stays smooth even with the UI blurring over it.
+      if (this.bucket.length < n) this.bucket = new Uint8Array(n);
+      const bk = this.bucket;
+      const colors = velocity ? this.velocityColors : this.paletteColors;
+      for (let i = 0; i < n; i++) {
+        if (velocity) {
+          const sp = Math.sqrt(vx[i] * vx[i] + vy[i] * vy[i]);
+          bk[i] = Math.min(VELOCITY_BUCKETS - 1, ((sp / vmax) * VELOCITY_BUCKETS) | 0);
+        } else {
+          bk[i] = col[i] % colors.length;
+        }
+      }
+      const dotScale = 1.7 * glow;
+      for (let c = 0; c < colors.length; c++) {
+        ctx.fillStyle = colors[c];
+        for (let i = 0; i < n; i++) {
+          if (bk[i] !== c) continue;
+          const d = size[i] * dotScale;
+          ctx.fillRect(x[i] - d / 2, y[i] - d / 2, d, d);
+        }
+      }
+    } else for (let i = 0; i < n; i++) {
       let sprite: HTMLCanvasElement;
       if (velocity) {
         const sp = Math.sqrt(vx[i] * vx[i] + vy[i] * vy[i]);
@@ -588,7 +618,7 @@ export class ParticleEngine {
         ctx.arc(0, 0, hr * 4, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = theme.light ? color : '#000';
         ctx.beginPath();
         ctx.arc(0, 0, hr, 0, Math.PI * 2);
         ctx.fill();
