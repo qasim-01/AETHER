@@ -1,31 +1,55 @@
-export type Particle = {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    color: string;
-    life: number;
-    size: number;
-};
+export type ForceType = 'attractor' | 'repulsor' | 'vortex' | 'singularity';
 
-export type ForceType = "attractor" | "repulsor";
+export type ActiveTool = ForceType | 'pulse' | 'brush' | 'eraser';
 
-export type ActiveTool = "attractor" | "repulsor" | "eraser";
+export type ThemeMode =
+  | 'NEON'
+  | 'FIRE'
+  | 'OCEAN'
+  | 'AURORA'
+  | 'SYNTH'
+  | 'NEBULA'
+  | 'TOXIC'
+  | 'MONO';
 
-export type ThemeMode = "NEON" | "FIRE" | "OCEAN" | "MONO";
+export type ColorMode = 'palette' | 'velocity';
+
+export type EdgeMode = 'bounce' | 'wrap';
+
+export type Symmetry = 1 | 2 | 4 | 6;
+
+export type PresetId = 'galaxy' | 'binary' | 'blackhole' | 'nebula' | 'fountain' | 'chaos';
 
 export type ThemeColors = {
-    background: string;
-    particles: string[];
-    attractor: string;
-    repulsor: string;
-    accent: string;
+  name: string;
+  /** rgb triplet of the backdrop, used for trails */
+  bg: [number, number, number];
+  particles: string[];
+  /** slow → fast gradient used in velocity colour mode */
+  gradient: string[];
+  attractor: string;
+  repulsor: string;
+  vortex: string;
+  singularity: string;
+  accent: string;
 };
 
 export type ForceNode = {
-    id: string;
-    x: number;
-    y: number;
-    type: ForceType;
-    strength: number;
+  id: string;
+  x: number;
+  y: number;
+  type: ForceType;
+  strength: number;
+};
+
+export type SimSettings = {
+  particleCount: number;
+  nodeStrength: number;
+  friction: number;
+  trail: number;
+  timeScale: number;
+  glow: number;
+  edgeMode: EdgeMode;
+  colorMode: ColorMode;
+  symmetry: Symmetry;
 };

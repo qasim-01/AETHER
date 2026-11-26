@@ -8,18 +8,30 @@ ____
 
 ## Features
 
-- **High-Performace Canvas Engine:** Renders and computes physics for 2,000+ independent particles at 60 FPS.
+### Landing page (`/`)
+- **Particle hero:** the word AETHER is built from thousands of live particles that swirl away from your cursor and re-form.
+- **Live force demos:** each force type runs its own mini simulation. Hover to move the force, click to fire a shockwave.
+- **Animated physics explainer:** the radial pull and tangential swirl vectors behind the orbital mechanics.
+- **Theme picker:** choose a palette before you enter, and the simulator opens in it.
+- **Warp transition:** the word explodes into a vortex and you jump to hyperspace into the simulator.
 
-- **Decoupled Architecture:** The physics loop and the UI are completely separated, this allows for state updates using Zustand and therefore this prevents React re-renders from bottlenecking the canvas `requestAnimationFrame` loop.
+### Simulator (`/sim`)
+- **Four field types:** Attractor (accretion disks), Repulsor, Vortex (clockwise or counter-clockwise) and Singularity (a black hole that consumes particles and respawns them at the edge).
+- **Interactive tools:** Shockwave (expanding blast ring), Gravity Brush (hold to pull, Shift to push) and Eraser.
+- **Direct manipulation:** drag nodes to move them, scroll over a node to tune its strength, right-click to delete, Ctrl/⌘+Z to undo.
+- **Six presets:** Spiral Galaxy, Binary Stars, Event Horizon, Nebula, Supernova and Chaos, plus Big Bang, Shockwave, Agitate and Scatter events.
+- **Kaleidoscope symmetry:** mirror every placed node 2, 4 or 6 times around the centre.
+- **Physics controls:** particle count (500 to 15,000), node strength, time scale, drag, and bounce or wrap-around boundaries.
+- **Visual controls:** 8 themes (Neon, Fire, Ocean, Aurora, Synthwave, Nebula, Toxic, Mono), palette or velocity-based colouring, trail length and glow.
+- **Capture:** PNG screenshots and WebM video recording of the canvas.
+- **Live HUD:** FPS, particle and node counts, particles consumed, and a kinetic-energy sparkline.
+- **Keyboard shortcuts for everything** (press `?` in the simulator). Theme and settings are remembered between visits.
 
-- **Orbital Vector Math:** Attractor nodes generate both linear pull and tangential swirl forces, naturally forming the accretion disks mentioned earlier instead of simply attracting particles linearly and then "slingshotting" them off in a direction.
-
-- **Physics & Math Model Used:** Every frame, the engine calculates the distance ($d$) between a particle and a node. If within the threshold, it applies the inverse-square law to determine base strength, calculates the normalized directional vectors ($u_x, u_y$), and derives the perpendicular tangents ($\tau_x, \tau_y$) to apply orbital velocity.
-
-- **Rendering:** It uses `globalCompositeOperation` to create plasma blending and long-exposure light trails.
-
-- **Dynamic Themes:** This provides different coloring options to the users or "Themes" and it recalculations particle and UI hex codes instantly. 
-    - Themes: Neon, Fire, Ocean, Mono
+### Engine
+- **Decoupled architecture:** `lib/engine/ParticleEngine.ts` is a framework-agnostic class. It reads forces and settings from Zustand through getters every frame, so UI changes never restart the `requestAnimationFrame` loop.
+- **Struct-of-arrays particles:** positions and velocities live in `Float32Array`s, and frame-rate independent integration keeps the motion consistent on 60 Hz and 120 Hz screens.
+- **Sprite rendering:** particles are drawn as pre-baked radial glow sprites with additive (`lighter`) blending for plasma-like light trails.
+- **Orbital vector math:** each frame the engine computes the distance $d$ to every node, applies a $1/(d+\varepsilon)$ falloff, and splits the force into a radial unit vector $\hat{u}$ and its perpendicular tangent $\hat{\tau} = (-u_y, u_x)$. That turns straight-line attraction into stable orbits and accretion disks.
 
 _____
 
