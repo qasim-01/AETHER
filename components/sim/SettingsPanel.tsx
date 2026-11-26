@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, SlidersHorizontal, Palette, RotateCcw, Bomb, Waves, Vibrate } from 'lucide-react';
 import { useSimulationStore } from '@/lib/store/useSimulationStore';
-import { THEMES, THEME_ORDER } from '@/lib/themes';
+import { THEMES, THEME_ORDER, getTheme } from '@/lib/themes';
 import { PRESETS } from '@/lib/engine/presets';
 import { loadPreset, bigBang, shockwaveCenter, shake, resetParticles } from '@/lib/engine/actions';
 import { Glass, Slider, Segmented, SectionLabel } from './ui';
@@ -21,7 +21,7 @@ const TABS: { id: Tab; label: string; icon: typeof Sparkles }[] = [
 export default function SettingsPanel() {
   const [tab, setTab] = useState<Tab>('scenes');
   const open = useSimulationStore((s) => s.panelOpen);
-  const theme = THEMES[useSimulationStore((s) => s.currentTheme)];
+  const theme = getTheme(useSimulationStore((s) => s.currentTheme), useSimulationStore((s) => s.appearance));
 
   return (
     <AnimatePresence>
@@ -34,7 +34,7 @@ export default function SettingsPanel() {
           className="pointer-events-auto w-[min(320px,calc(100vw-2rem))]"
         >
           <Glass className="flex max-h-[calc(100svh-11rem)] max-lg:max-h-[calc(100svh-13rem)] flex-col overflow-hidden">
-            <div className="flex gap-1 border-b border-white/10 p-1.5">
+            <div className="flex gap-1 border-b border-ink/10 p-1.5">
               {TABS.map((t) => {
                 const Icon = t.icon;
                 const active = tab === t.id;
@@ -43,13 +43,13 @@ export default function SettingsPanel() {
                     key={t.id}
                     onClick={() => setTab(t.id)}
                     className={`relative flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-medium transition-colors ${
-                      active ? 'text-white' : 'text-white/45 hover:text-white/80'
+                      active ? 'text-ink' : 'text-ink/45 hover:text-ink/80'
                     }`}
                   >
                     {active && (
                       <motion.span
                         layoutId="panel-tab"
-                        className="absolute inset-0 rounded-xl bg-white/[0.08]"
+                        className="absolute inset-0 rounded-xl bg-ink/[0.08]"
                         transition={{ type: 'spring', stiffness: 500, damping: 38 }}
                       />
                     )}
@@ -92,11 +92,11 @@ function ScenesTab({ accent }: { accent: string }) {
             <button
               key={p.id}
               onClick={() => loadPreset(p.id)}
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition-all hover:border-white/25 hover:bg-white/[0.06]"
+              className="group relative overflow-hidden rounded-xl border border-ink/10 bg-ink/[0.03] p-3 text-left transition-all hover:border-ink/25 hover:bg-ink/[0.06]"
             >
               <PresetGlyph index={i} accent={accent} />
-              <div className="relative mt-6 text-xs font-semibold text-white">{p.name}</div>
-              <div className="relative mt-0.5 text-[10px] leading-snug text-white/40">{p.blurb}</div>
+              <div className="relative mt-6 text-xs font-semibold text-ink">{p.name}</div>
+              <div className="relative mt-0.5 text-[10px] leading-snug text-ink/40">{p.blurb}</div>
             </button>
           ))}
         </div>
@@ -151,11 +151,11 @@ function EventButton({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-xs text-white/75 transition-all hover:border-white/25 hover:bg-white/[0.06] hover:text-white"
+      className="flex items-center gap-2 rounded-xl border border-ink/10 bg-ink/[0.03] px-3 py-2.5 text-xs text-ink/75 transition-all hover:border-ink/25 hover:bg-ink/[0.06] hover:text-ink"
     >
       <Icon size={14} />
       <span className="flex-1 text-left">{label}</span>
-      <kbd className="font-mono text-[10px] text-white/30">{kbd}</kbd>
+      <kbd className="font-mono text-[10px] text-ink/30">{kbd}</kbd>
     </button>
   );
 }
@@ -233,14 +233,14 @@ function PhysicsTab({ accent }: { accent: string }) {
           ]}
           accent={accent}
         />
-        <p className="mt-2 text-[10px] leading-relaxed text-white/35">
+        <p className="mt-2 text-[10px] leading-relaxed text-ink/35">
           Mirrors each node you place around the centre of the screen. Great for mandalas.
         </p>
       </div>
 
       <button
         onClick={reset}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 py-2.5 text-[11px] uppercase tracking-wider text-white/40 transition-all hover:border-white/25 hover:text-white/70"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-ink/10 py-2.5 text-[11px] uppercase tracking-wider text-ink/40 transition-all hover:border-ink/25 hover:text-ink/70"
       >
         <RotateCcw size={12} /> Reset to defaults
       </button>
@@ -255,9 +255,24 @@ function VisualsTab({ accent }: { accent: string }) {
   const setTheme = useSimulationStore((st) => st.setTheme);
   const nodesVisible = useSimulationStore((st) => st.nodesVisible);
   const toggleNodes = useSimulationStore((st) => st.toggleNodesVisible);
+  const appearance = useSimulationStore((st) => st.appearance);
+  const toggleAppearance = useSimulationStore((st) => st.toggleAppearance);
 
   return (
     <div className="space-y-6">
+      <div>
+        <SectionLabel>Appearance</SectionLabel>
+        <Segmented
+          value={appearance}
+          onChange={(v) => v !== appearance && toggleAppearance()}
+          options={[
+            { value: 'dark', label: 'Dark · light' },
+            { value: 'light', label: 'Light · ink' },
+          ]}
+          accent={accent}
+        />
+      </div>
+
       <div>
         <SectionLabel>Theme</SectionLabel>
         <div className="grid grid-cols-4 gap-2">
@@ -269,7 +284,7 @@ function VisualsTab({ accent }: { accent: string }) {
                 key={id}
                 onClick={() => setTheme(id)}
                 className={`group flex flex-col items-center gap-1.5 rounded-xl border p-2 transition-all ${
-                  active ? 'border-white/40 bg-white/[0.08]' : 'border-white/5 hover:border-white/20'
+                  active ? 'border-ink/40 bg-ink/[0.08]' : 'border-ink/5 hover:border-ink/20'
                 }`}
               >
                 <span
@@ -279,7 +294,7 @@ function VisualsTab({ accent }: { accent: string }) {
                     boxShadow: active ? `0 0 16px -2px ${t.accent}` : undefined,
                   }}
                 />
-                <span className={`text-[10px] ${active ? 'text-white' : 'text-white/45'}`}>{t.name}</span>
+                <span className={`text-[10px] ${active ? 'text-ink' : 'text-ink/45'}`}>{t.name}</span>
               </button>
             );
           })}

@@ -32,7 +32,11 @@ export type ThemeColors = {
   vortex: string;
   singularity: string;
   accent: string;
+  /** Light-background variant: particles are blended with multiply instead of additive light. */
+  light?: boolean;
 };
+
+export type Appearance = 'dark' | 'light';
 
 export type ForceNode = {
   id: string;

@@ -4,6 +4,24 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-display: var(--font-unbounded), var(--font-geist-sans), sans-serif;
+  --color-ink: rgb(var(--ink));
+  --color-panel: rgb(var(--panel));
+}
+
+/* Simulator UI tokens: `ink` is foreground, `panel` is glass. Flipped in light mode. */
+:root,
+.sim-root {
+  --ink: 255 255 255;
+  --panel: 7 7 13;
+}
+.sim-root.sim-light {
+  --ink: 26 26 42;
+  --panel: 250 249 245;
+}
+/* Re-resolve the colour tokens on the simulator root so the light override takes effect. */
+.sim-root {
+  --color-ink: rgb(var(--ink));
+  --color-panel: rgb(var(--panel));
 }
 
 html {

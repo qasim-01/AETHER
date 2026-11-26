@@ -15,6 +15,15 @@ export function randomize() {
   loadPreset('chaos');
 }
 
+/** Back to a blank, black universe: no nodes, freshly scattered particles, trails wiped. */
+export function resetUniverse() {
+  const engine = getEngine();
+  if (!engine) return;
+  useSimulationStore.getState().clearForces();
+  engine.seed('uniform');
+  engine.clear();
+}
+
 export function resetParticles() {
   getEngine()?.seed('uniform');
 }
@@ -67,7 +76,7 @@ export function toggleRecording() {
     return;
   }
 
-  const stream = engine.canvas.captureStream(60);
+  const stream = engine.startComposite().captureStream(60);
   const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find((m) =>
     MediaRecorder.isTypeSupported(m),
   );
@@ -85,6 +94,7 @@ export function toggleRecording() {
     download(url, `aether-${Date.now()}.${type.includes('mp4') ? 'mp4' : 'webm'}`);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
     stream.getTracks().forEach((t) => t.stop());
+    getEngine()?.stopComposite();
     useSimulationStore.getState().setRecording(false);
     recorder = null;
   };

@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { getEngine } from '@/lib/engine/engineRef';
 import { useSimulationStore } from '@/lib/store/useSimulationStore';
-import { THEMES } from '@/lib/themes';
+import { getTheme } from '@/lib/themes';
 import { Glass } from './ui';
 
 const HISTORY = 48;
 
 export default function Hud() {
   const forces = useSimulationStore((s) => s.forces.length);
-  const theme = THEMES[useSimulationStore((s) => s.currentTheme)];
+  const theme = getTheme(useSimulationStore((s) => s.currentTheme), useSimulationStore((s) => s.appearance));
   const [stats, setStats] = useState({ fps: 0, energy: 0, absorbed: 0, particles: 0 });
   const [spark, setSpark] = useState<number[]>([]);
 
@@ -39,10 +39,10 @@ export default function Hud() {
         <Stat label="PARTICLES" value={stats.particles.toLocaleString()} />
         <Stat label="CONSUMED" value={stats.absorbed.toLocaleString()} />
       </div>
-      <div className="mt-3 border-t border-white/5 pt-2.5">
-        <div className="mb-1 flex justify-between text-[9px] tracking-widest text-white/35">
+      <div className="mt-3 border-t border-ink/5 pt-2.5">
+        <div className="mb-1 flex justify-between text-[9px] tracking-widest text-ink/35">
           <span>KINETIC ENERGY</span>
-          <span className="text-white/60">{stats.energy.toFixed(2)}</span>
+          <span className="text-ink/60">{stats.energy.toFixed(2)}</span>
         </div>
         <svg viewBox="0 0 100 30" preserveAspectRatio="none" className="h-7 w-full">
           <defs>
@@ -66,8 +66,8 @@ export default function Hud() {
 function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[9px] tracking-widest text-white/35">{label}</span>
-      <span className="text-sm text-white" style={color ? { color } : undefined}>
+      <span className="text-[9px] tracking-widest text-ink/35">{label}</span>
+      <span className="text-sm text-ink" style={color ? { color } : undefined}>
         {value}
       </span>
     </div>

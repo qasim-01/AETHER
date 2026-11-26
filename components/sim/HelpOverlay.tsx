@@ -24,6 +24,7 @@ const GROUPS: { title: string; items: [string, string][] }[] = [
       ['Ctrl / ⌘ + Z', 'Undo'],
       ['R', 'Random universe'],
       ['C', 'Clear all nodes'],
+      ['0', 'Reset to an empty universe'],
       ['B', 'Big bang'],
       ['P', 'Central shockwave'],
       ['X', 'Agitate particles'],
@@ -34,6 +35,7 @@ const GROUPS: { title: string; items: [string, string][] }[] = [
     title: 'View & capture',
     items: [
       ['T', 'Next theme'],
+      ['M', 'Light / dark mode'],
       ['V', 'Toggle velocity colouring'],
       ['N', 'Show / hide nodes'],
       ['O', 'Toggle settings panel'],
@@ -65,16 +67,16 @@ export default function HelpOverlay() {
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.96, y: 10 }}
             onClick={(e) => e.stopPropagation()}
-            className="aether-scroll max-h-[85vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-[#07070d]/90 p-6 text-white shadow-2xl sm:p-8"
+            className="aether-scroll max-h-[85vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-ink/10 bg-panel/90 p-6 text-ink shadow-2xl sm:p-8"
           >
             <div className="mb-6 flex items-start justify-between">
               <div>
                 <h2 className="text-lg font-semibold tracking-wide">Controls</h2>
-                <p className="mt-1 text-xs text-white/40">Everything in AETHER has a shortcut.</p>
+                <p className="mt-1 text-xs text-ink/40">Everything in AETHER has a shortcut.</p>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="rounded-lg p-1.5 text-white/50 hover:bg-white/10 hover:text-white"
+                className="rounded-lg p-1.5 text-ink/50 hover:bg-ink/10 hover:text-ink"
                 aria-label="Close"
               >
                 <X size={18} />
@@ -83,14 +85,14 @@ export default function HelpOverlay() {
             <div className="grid gap-8 md:grid-cols-3">
               {GROUPS.map((g) => (
                 <div key={g.title}>
-                  <div className="mb-3 text-[10px] uppercase tracking-[0.2em] text-white/35">{g.title}</div>
+                  <div className="mb-3 text-[10px] uppercase tracking-[0.2em] text-ink/35">{g.title}</div>
                   <ul className="space-y-2.5">
                     {g.items.map(([k, v]) => (
                       <li key={k} className="flex flex-col gap-1 text-xs">
-                        <kbd className="w-fit rounded-md border border-white/15 bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-white/80">
+                        <kbd className="w-fit rounded-md border border-ink/15 bg-ink/5 px-1.5 py-0.5 font-mono text-[10px] text-ink/80">
                           {k}
                         </kbd>
-                        <span className="text-white/55">{v}</span>
+                        <span className="text-ink/55">{v}</span>
                       </li>
                     ))}
                   </ul>
